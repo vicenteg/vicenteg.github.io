@@ -67,7 +67,7 @@ cture":"x86_64","RootDeviceType":"ebs","RootDeviceName":"/dev/sda1","Virtualizat
 41 rows selected (0.14 seconds)
 ```
 
-The output is still not exactly a neat table, but now we have 41 row instead of 1. Each row is a map, containing some of the things we want to turn into columns.
+The output is still not exactly a neat table, but now we have 41 rows instead of 1. Each row is a map, containing some of the things we want to turn into columns.
 
 So now we need to get into those maps.
 

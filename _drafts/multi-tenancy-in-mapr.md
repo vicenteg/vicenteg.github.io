@@ -18,6 +18,7 @@ categories: mapr multi-tenancy
 	* Application Tenant (application with service account(s))
 	* User Tenant (e.g. home directories)
 	* Multi-user Tenants (e.g., Lines of Business)
+* Multi-Tenant Data Organization
 
 ## What is Multi-Tenancy
 
@@ -301,6 +302,10 @@ jsmith   test        0
 
 Note the `-filter`. We look for volumes that are not mounted (`mounted==0`) and are not named `mapr.cldb.internal`. `mapr.cldb.internal` is a special volume, and is not mounted, so we ignore it.
 
+
+### Data Organization
+
+In the book _Hadoop Application Architectures_ (published by O'Reilly, 2015), the authors put forth a recommendation 
 
 ## YARN
 

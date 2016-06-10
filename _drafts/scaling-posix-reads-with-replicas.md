@@ -5,7 +5,6 @@ date:   2016-05-02 12:00:23 -0500
 categories: maprfs posix performance
 ---
 
-
 ## Background
 
 Some customers would like to consider MapR for some read-dominant scale out NFS use cases. As such, they need to be sure that reads via NFS gateways can be scaled through replication.

@@ -1,0 +1,74 @@
+# Workshop for Drill - Delimited (TSV) Dataset
+
+Work with a text, delimited data set.
+
+Even one of the files is too large to reasonably deal with in Excel. Each file contains one day of data from the MTA. The complete data set from the MTA covers three months (August, September and October) of 2014.
+
+The full dataset has 92 files, and a total of about 438 million rows, and is 65GB uncompressed.
+
+The file we'll work with has over 5 million rows, and is nearly 900MB uncompressed.
+
+## Connectivity
+
+Provide private keys, install public keys on all nodes of all clusters
+
+```
+ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAvVzin+Jywedlieu08OI0I5BSthzTX3osqD47xbvzD2yHIehiBU9fRabwmDm065lTftp2NHO7eA6Rordkc4N/t0K3Q/JqyeJXuhuX7s2B8AejuimXuca6xWkrsRlir0RcSeXKyksBpts+Gp4xorSOq70vlw5qmuVW7+atArZ6X1dEIM2I7YdzmgI/wUwkbUAs0S9GjQ9tzLOWcKIC0HkUPNUcUPsywYT6YFKnHBA/2SIgCqsglO8i9Rjr5mFV9dLu/AgNGvm92/edgujrAQHRy+wI7BBOagAmGNoEYrZGi2iKZK3MyAGW1ZxVuDLbWkBYZqSgo53x1vShOIXvJH+h2w== rsa-key-20160509
+```
+
+
+## Dataset
+
+Comes from: http://web.mta.info/developers/MTA-Bus-Time-historical-data.html
+
+Direct link to one file: http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-10-31.txt.xz
+
+You can get the entire data set with distcp: hadoop distcp s3a://vgonzalez/data/nyc /user/mapr/data/nyc
+
+Modify the distcp command as necessary to include your credentials, or set up core-site.xml with AWS credentials.
+
+## Preparing
+
+Assume a cluster with no security.
+
+Need jq unless you want to edit the storage plugins by hand.
+
+```
+sudo yum -y install jq
+
+cd /mapr/*/user/mapr
+sudo -u mapr curl -LO http://s3.amazonaws.com/MTABusTime/AppQuest3/MTA-Bus-Time_.2014-10-31.txt.xz
+sudo -u mapr xz -vd MTA-Bus-Time_.2014-10-31.txt.xz
+sudo -u mapr mv MTA-Bus-Time_.2014-10-31.txt MTA-Bus-Time_.2014-10-31.txt.tsvh
+
+sudo -u mapr mkdir -p data/nyc/mta/bustime
+sudo -u mapr mv MTA-Bus-Time_.2014-10-31.txt.tsvh data/nyc/mta/bustime
+
+DRILLBIT_URL=http://localhost:8047
+curl -k -s $DRILLBIT_URL/storage.json |\
+	jq '.[] | select(.name == "dfs") | .config.workspaces |= . + { "mta": { "location": "/user/ec2-user/data/nyc/mta", "writable": true, "defaultInputFormat": "tsvh" } } | .config.formats |= . + { "tsvh": { "type": "text", "extensions": [ "tsvh" ], "delimiter": "\t", "extractHeader": true } }' |\
+	curl -s -k -X POST -H "Content-Type: application/json" -d @- $DRILLBIT_URL/storage/dfs.json
+```
+
+_Creating the workspace with options because of DRILL-4658_
+
+## Queries
+
+### Connect to Drill with sqlline
+
+```
+sqlline -u jdbc:drill:schema=dfs.mta
+```
+
+### See the column names
+
+```sql
+select * from bustime limit 0;
+```
+
+### See a few rows
+
+```sql
+select * from bustime limit 3;
+```
+
