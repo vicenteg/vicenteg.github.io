@@ -1,20 +1,16 @@
 ---
 layout: post
-title:  "User On-Boarding Basics with MapR FS"
+title:  "User On-Boarding Basics with MapR"
 date:   2016-06-15 19:56:22 -0500
 categories: maprfs
 ---
 
-# TODO
-
-* ~~Without volume ACE, you could guess a filename and if permissions allow, you could read it. Volume ACEs don't let you get past the volume's mount point.~~
-
-# User On-Boarding Basics with MapR FS
+# User On-Boarding Basics with MapR
 
 MapR FS provides some very useful capabilities for data management and access control. These
 features can and should be applied to user home directories.
 
-A user in a MapR has a lot of capability at their fingertips. They can create files,
+A user in a MapR cluster has a lot of capability at their fingertips. They can create files,
 two styles of NoSQL tables, pub/sub messaging streams with many thousands of topics.
 They can also run MapReduce or Spark jobs, or run just about any program against the
 file system using the POSIX capability of the cluster. With all the stuff they can
@@ -25,10 +21,10 @@ Let's look at how we can apply MapR's data management features to user home dire
 
 # Following Along
 
-If you want to follow along, all you need is a MapR cluster or single-node
-sandbox running MapR 5.1.0 or later.
+If you want to follow along, all you need is a MapR cluster or [single-node
+sandbox](https://www.mapr.com/products/mapr-sandbox-hadoop) running MapR 5.1.0 or later.
 
-All of what I'll demonstrate here can be done on any license level of MapR,
+All of what I'll demonstrate here can be done on any [license level](https://www.mapr.com/products/mapr-distribution-editions) of MapR,
 from community edition to enterprise.
 
 # What We'll Do
@@ -204,5 +200,8 @@ when the quotas are exceeded, helping you avoid capacity problems due to runaway
 3. Apply ACEs judiciously, starting from the volume level. If data is being organized
 by volume, you can control access to data through volume-level ACEs. You can then
 apply file/directory level ACEs sparingly as required.
+
+4. Finally, it's a good idea to automate this sort of thing. Since it's only a
+few steps, a simple script should suffice.
 
 I hope this helps you manage space in your cluster more effectively!
