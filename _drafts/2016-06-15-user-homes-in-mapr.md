@@ -1,0 +1,177 @@
+---
+layout: post
+title:  "User On-Boarding Basics with MapR FS"
+date:   2016-06-15 19:56:22 -0500
+categories: maprfs
+---
+
+# TODO
+
+* Without volume ACE, you could guess a filename and if permissions allow, you could read it. Volume ACEs don't let you get past the volume's mount point.
+
+# User On-Boarding Basics with MapR FS
+
+MapR FS provides some very useful capabilities for data management and access control. These
+features can and should be applied to user home directories.
+
+A user in a MapR has a lot of capability at their fingertips. They can create files,
+two styles of NoSQL tables, pub/sub messaging streams with many thousands of topics.
+They can also run MapReduce or Spark jobs, or run just about any program against the
+file system using the POSIX capability of the cluster. With all the stuff they can
+do, there's bound to be a lot of data getting stored, and it's a good idea to keep
+tabs on that so it doesn't get out of control.
+
+Let's look at how we can apply MapR's data management features to user home directories hosted in a MapR cluster.
+
+# Following Along
+
+If you want to follow along, all you need is a MapR cluster or single-node
+sandbox running MapR 5.1.0 or later.
+
+All of what I'll demonstrate here can be done on any license level of MapR,
+from community edition to enterprise.
+
+# What We'll Do
+
+We'll use MapR FS volumes for our user home directories. Volumes are a unit of
+data management, and for user home directories, can do the following for you:
+
+* Restrict access through Access Control Expressions
+* Control space usage through quotas
+
+# Let's Do It
+
+
+Jumping right in, we'll run a few maprcli commands. I'll explain these in a minute.
+
+```
+# The "type" argument 0 means "user"
+maprcli entity modify \
+  -name vince \
+  -type 0 \
+  -email vgonzalez@maprtech.com \
+  -quota 2T \
+  -advisoryquota 1T
+
+maprcli volume create \
+  -path /user/vince \
+  -name home.vince \
+  -quota 1T \
+  -advisoryquota 750G \
+  -ae vince \
+  -readAce u:vince \
+  -writeAce u:vince
+
+hadoop fs -chown vince:vince /user/vince
+```
+
+A few things happened here.
+
+First, we set a quota for the "accountable entity" named vince. The accountable entity
+quota gives us a way to constrain the space used by a user across volumes, and
+also a way to account for the number of volumes and the total space consumed
+across them.
+
+Consider a scenario in which a user has multiple volumes, such as a basic home
+directory and a workspace for an application the he's developing. The accountable
+entity gives the cluster admins a convenient way to sum up all the usage of the
+volumes provisioned to that entity.
+
+Next I create a volume for user `vince`. The volume has a quota of 1TB, which means
+the volume will stop accepting writes once it has 1TB of data. This is a _hard_ quota.
+
+The volume also has an advisory quota of 750GB. More about quotas in a bit.
+
+
+By convention, we mount the volume at the path `/user/<username>` and name it
+`home.<username>`. This makes it easy to filter when dealing with large number of
+volumes.
+
+The `readAce` and `writeAce` options create access control expressions (ACEs) on the volume.
+
+Volume ACEs are very useful as a way to limit access to data in the volume. Regardless
+ of what permissions a user sets on files within the volume, users who do not match the ACE
+ are denied access. Since only a user with administrative priviliges can modify volumes,
+ this is a good way to avoid inadvertent data sharing.
+
+ We used the `-ae` option to set the "accountable entity" so that this volume is counted toward
+ user `vince``s entity quota.
+
+Finally, we set the owner of the mount point of the newly created volume. This
+illustrates a subtle point. Volume ACEs don't have anything to do with the POSIX
+permissions of the data in the volume; they only govern access to the volume and the
+data contained in it. So we need to make sure that ownership information is set
+correctly on the top level directory so that the users can actually use the volume.
+
+# More About Quotas
+
+We set quotas on the volume, and these will trigger an alarm if exceeded.
+For instance, if I write more data than is allowed by my hard quota,
+I'll see an alarm like the following:
+
+```
+$ maprcli alarm list -entity home.vince -json
+{
+	"timestamp":1465937565435,
+	"timeofday":"2016-06-14 01:52:45.435 GMT-0700",
+	"status":"OK",
+	"total":2,
+	"data":[
+		{
+			"entity":"home.vince",
+			"alarm name":"VOLUME_ALARM_QUOTA_EXCEEDED",
+			"alarm state":1,
+			"alarm statechange time":1465937455432,
+			"description":"Volume usage exceeded quota. Used: 371 MB Quota : 300 MB"
+		},
+		{
+			"entity":"home.vince",
+			"alarm name":"VOLUME_ALARM_ADVISORY_QUOTA_EXCEEDED",
+			"alarm state":1,
+			"alarm statechange time":1465937449424,
+			"description":"Volume usage exceeded advisory quota. Used: 202 MB Advisory Quota : 200 MB"
+		}
+	]
+}
+```
+
+These alarms will also be surfaced in the MCS, both in the main alarms panel of the
+dashboard page:
+
+![Dashboard Volume Quota Alarm](images/quota-alarm-dashboard.png)
+
+And also in the volume list, where the actual usage will be highlighted in bold red text:
+
+![Volume List Quota Alarm](images/quota-alarm-volume-list.png)
+
+# Getting Usage Across Volumes
+
+Having applied quotas to the user home volume and to the accountable entity, we
+can get the usage information.
+
+First, let's get the entity info for `vince`:
+
+```
+maprcli entity info -name vince -json
+{
+	"timestamp":1465936485131,
+	"timeofday":"2016-06-14 01:34:45.131 GMT-0700",
+	"status":"OK",
+	"total":1,
+	"data":[
+		{
+			"EntityType":0,
+			"EntityName":"vince",
+			"VolumeCount":2,
+			"EntityQuota":2097152,
+			"EntityAdvisoryquota":1048576,
+			"DiskUsage":100,
+			"EntityEmail":"vgonzalez@maprtech.com",
+			"EntityId":2005
+		}
+	]
+}
+```
+
+We can see here that user `vince` has two volumes (`"VolumeCount":2`) and these
+volumes are consuming 100MB of storage
