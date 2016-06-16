@@ -7,7 +7,7 @@ categories: maprfs
 
 # TODO
 
-* Without volume ACE, you could guess a filename and if permissions allow, you could read it. Volume ACEs don't let you get past the volume's mount point.
+* ~~Without volume ACE, you could guess a filename and if permissions allow, you could read it. Volume ACEs don't let you get past the volume's mount point.~~
 
 # User On-Boarding Basics with MapR FS
 
@@ -41,7 +41,6 @@ data management, and for user home directories, can do the following for you:
 
 # Let's Do It
 
-
 Jumping right in, we'll run a few maprcli commands. I'll explain these in a minute.
 
 ```
@@ -56,8 +55,8 @@ maprcli entity modify \
 maprcli volume create \
   -path /user/vince \
   -name home.vince \
-  -quota 1T \
-  -advisoryquota 750G \
+  -quota 300M \
+  -advisoryquota 200M \
   -ae vince \
   -readAce u:vince \
   -writeAce u:vince
@@ -77,11 +76,10 @@ directory and a workspace for an application the he's developing. The accountabl
 entity gives the cluster admins a convenient way to sum up all the usage of the
 volumes provisioned to that entity.
 
-Next I create a volume for user `vince`. The volume has a quota of 1TB, which means
-the volume will stop accepting writes once it has 1TB of data. This is a _hard_ quota.
+Next I create a volume for user `vince`. The volume has a quota of 300MB, which means
+the volume will stop accepting writes once it has 300MB of data. This is a _hard_ quota.
 
-The volume also has an advisory quota of 750GB. More about quotas in a bit.
-
+The volume also has an advisory quota of 200MB. More about quotas in a bit.
 
 By convention, we mount the volume at the path `/user/<username>` and name it
 `home.<username>`. This makes it easy to filter when dealing with large number of
@@ -91,8 +89,8 @@ The `readAce` and `writeAce` options create access control expressions (ACEs) on
 
 Volume ACEs are very useful as a way to limit access to data in the volume. Regardless
  of what permissions a user sets on files within the volume, users who do not match the ACE
- are denied access. Since only a user with administrative priviliges can modify volumes,
- this is a good way to avoid inadvertent data sharing.
+ are denied access. Since only a user with administrative privileges can modify volumes,
+ this is a good way to prevent inadvertent data sharing.
 
  We used the `-ae` option to set the "accountable entity" so that this volume is counted toward
  user `vince``s entity quota.
@@ -138,13 +136,13 @@ $ maprcli alarm list -entity home.vince -json
 These alarms will also be surfaced in the MCS, both in the main alarms panel of the
 dashboard page:
 
-![Dashboard Volume Quota Alarm](images/quota-alarm-dashboard.png)
+![Dashboard Volume Quota Alarm](/images/quota-alarm-dashboard.png)
 
 And also in the volume list, where the actual usage will be highlighted in bold red text:
 
-![Volume List Quota Alarm](images/quota-alarm-volume-list.png)
+![Volume List Quota Alarm](/images/quota-alarm-volume-list.png)
 
-# Getting Usage Across Volumes
+# Getting Usage for your Entity (user)
 
 Having applied quotas to the user home volume and to the accountable entity, we
 can get the usage information.
@@ -154,8 +152,8 @@ First, let's get the entity info for `vince`:
 ```
 maprcli entity info -name vince -json
 {
-	"timestamp":1465936485131,
-	"timeofday":"2016-06-14 01:34:45.131 GMT-0700",
+	"timestamp":1465938582023,
+	"timeofday":"2016-06-14 02:09:42.023 GMT-0700",
 	"status":"OK",
 	"total":1,
 	"data":[
@@ -165,7 +163,7 @@ maprcli entity info -name vince -json
 			"VolumeCount":2,
 			"EntityQuota":2097152,
 			"EntityAdvisoryquota":1048576,
-			"DiskUsage":100,
+			"DiskUsage":444,
 			"EntityEmail":"vgonzalez@maprtech.com",
 			"EntityId":2005
 		}
@@ -174,4 +172,37 @@ maprcli entity info -name vince -json
 ```
 
 We can see here that user `vince` has two volumes (`"VolumeCount":2`) and these
-volumes are consuming 100MB of storage
+volumes are consuming 444MB of storage. In the example above, we can see that
+this exceeds the volume quota, but does not exceed the entity quota, which is
+much higher. This gives you a lot of flexibility to manage space usage.
+
+# A Note on Volume ACEs
+
+Since volumes can be created fairly liberally (MapR FS supports many thousands
+of them in a single cluster), it's a great idea to use volumes liberally to
+organize and account for your data.
+
+If you're organizing your data into volumes you can use ACEs to govern access to
+the data in the volumes. So if we're organizing things well, we can probably
+use volume ACEs as the primary access control mechanism for a dataset, which will
+allow us to use file and directory level ACEs only when absolutely necessary.
+
+While file and directory ACEs are a great tool, you should consider using volume
+ACEs first, then only applying directory and file ACEs as needed.
+
+# Conclusion
+
+So a few points in summary.
+
+1. You should be using volumes to organize your data. Creating them for each user,
+unless you have many tens of thousands of users, is fully within your cluster's capability.
+
+2. Apply quotas (advisory and/or hard) to your entities, like users. This will fire alarms
+when the quotas are exceeded, helping you avoid capacity problems due to runaway jobs or
+"overenthusiastic" users.
+
+3. Apply ACEs judiciously, starting from the volume level. If data is being organized
+by volume, you can control access to data through volume-level ACEs. You can then
+apply file/directory level ACEs sparingly as required.
+
+I hope this helps you manage space in your cluster more effectively!
