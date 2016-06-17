@@ -210,7 +210,7 @@ maprcli config save -values '{"mapr.quota.user.default":"1T","mapr.quota.group.d
 Now, when you create a volume for a user and specify an accountable entity,
 they'll automatically be subject to the default entity quota, unless you change it.
 
-As an example, if we create user `fred`'s homw, and immediately show the entity
+As an example, if we create user `fred`'s home, and immediately show the entity
 information, we see that Fred's got an entity quota of 1048576MB, or 1TB.
 
 ```
