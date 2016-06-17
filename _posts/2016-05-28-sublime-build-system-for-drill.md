@@ -25,6 +25,18 @@ My build system looks like the following. You may want to make some adjustments 
 }
 ```
 
+You could also use something like this if you're targeting a Drill cluster:
+
+```json
+{
+	"cmd": [ "/opt/apache-drill-1.6.0/bin/sqlline", "--color=false", "-u", "jdbc:drill:zk=localhost:2181",  "--run='$file'" ],
+	"working_dir": "$file_path",
+	"selector": "source.sql"
+}
+```
+
+Note the changed JDBC string, with the zookeeper specification.
+
 Save it. You'll be prompted for a filename - leave the extension as-is. I changed `untitled` to `localDrillbitQuery`, but you can call it whatever you want.
 
 Now create a new tab, and write a simple query to test:
