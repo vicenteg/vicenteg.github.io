@@ -32,7 +32,7 @@ from community edition to enterprise.
 We'll use MapR FS volumes for our user home directories. Volumes are a unit of
 data management, and for user home directories, can do the following for you:
 
-* Restrict access through Access Control Expressions
+* Restrict access through [Volume Access Control Expressions (ACEs)](http://maprdocs.mapr.com/51/#SecurityGuide/VolumeDataACE.html)
 * Control space usage through quotas
 
 # Let's Do It
@@ -172,6 +172,18 @@ volumes are consuming 444MB of storage. In the example above, we can see that
 this exceeds the volume quota, but does not exceed the entity quota, which is
 much higher. This gives you a lot of flexibility to manage space usage.
 
+# Wait, what?
+
+Did you notice that the disk usage exceeded the quota by a large amount? How did
+that happen if I had a hard quota of 300MB set?
+
+It's because for the purposes of the example, I wrote some data, then set the
+quota to a value much lower to trigger the alarm, so I could take the screenshot.
+This illustrates that the quotas we apply to a volume can be adjusted over time
+ to allow more space usage, or less.
+
+Nice catch, by the way!
+
 # A Note on Volume ACEs
 
 Since volumes can be created fairly liberally (MapR FS supports many thousands
@@ -185,6 +197,30 @@ allow us to use file and directory level ACEs only when absolutely necessary.
 
 While file and directory ACEs are a great tool, you should consider using volume
 ACEs first, then only applying directory and file ACEs as needed.
+
+# Setting Default Quotas
+
+You can also set default quotas. On the command line, you can issue the following
+command to set a 1TB user quota and a 10TB group quota:
+
+```
+maprcli config save -values '{"mapr.quota.user.default":"1T","mapr.quota.group.default":"10T"}'
+```
+
+Now, when you create a volume for a user and specify an accountable entity,
+they'll automatically be subject to the default entity quota, unless you change it.
+
+As an example, if we create user `fred`'s homw, and immediately show the entity
+information, we see that Fred's got an entity quota of 1048576MB, or 1TB.
+
+```
+maprcli volume create -path /user/fred -name home.fred -ae fred
+
+maprcli entity info -name fred
+EntityType  EntityId  EntityName  EntityAdvisoryquota  DiskUsage  VolumeCount  EntityQuota
+0           2007      fred        0                    0          1            1048576
+```
+
 
 # Conclusion
 
