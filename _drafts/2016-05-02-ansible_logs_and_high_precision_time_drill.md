@@ -100,7 +100,7 @@ select
     when
       t.`start` is not null
     then
-      unix_timestamp(t.`start`, 'yyyy-MM-dd HH:mm:ss.SSSSSS') 
+      unix_timestamp(t.`start`, 'yyyy-MM-dd HH:mm:ss.SSSSSS')
   end as `start`,
   case
     when
@@ -116,14 +116,14 @@ from dfs.`/Users/vince/src/logs` t;
 And then we can add the floating point number to the integral timestamp, and do the arithmetic to get the delta:
 
 ```sql
-select u.module_name, (u.`end` + u.end_nanos) - (u.`start` + u.start_nanos) as delta from 
+select u.module_name, (u.`end` + u.end_nanos) - (u.`start` + u.start_nanos) as delta from
   (select
     t.invocation.module_name module_name,
     case
       when
         t.`start` is not null
       then
-        unix_timestamp(t.`start`, 'yyyy-MM-dd HH:mm:ss.SSSSSS') 
+        unix_timestamp(t.`start`, 'yyyy-MM-dd HH:mm:ss.SSSSSS')
     end as `start`,
     case
       when
@@ -138,9 +138,9 @@ select u.module_name, (u.`end` + u.end_nanos) - (u.`start` + u.start_nanos) as d
 
 Now I can create a view:
 
-```
+```sql
 create or replace view dfs.tmp.ansible_task_times as
-  select u.pid,u.play,u.task,u.module_name, (u.`end` + u.end_nanos) - (u.`start` + u.start_nanos) as delta from 
+  select u.pid,u.play,u.task,u.module_name, (u.`end` + u.end_nanos) - (u.`start` + u.start_nanos) as delta from
     (select
       t.pid,
       t.play,
@@ -150,7 +150,7 @@ create or replace view dfs.tmp.ansible_task_times as
         when
           t.`start` is not null
         then
-          unix_timestamp(t.`start`, 'yyyy-MM-dd HH:mm:ss.SSSSSS') 
+          unix_timestamp(t.`start`, 'yyyy-MM-dd HH:mm:ss.SSSSSS')
       end as `start`,
       case
         when
@@ -165,7 +165,7 @@ create or replace view dfs.tmp.ansible_task_times as
 
 Now I can query my view much more simply:
 
-```
+```sql
 0: jdbc:drill:zk=local> select
      task,
      count(1) runs,
@@ -192,4 +192,4 @@ Now I can query my view much more simply:
 10 rows selected (1.096 seconds)
 ```
 
-
+Done - now I have high precision timings for all of my ansible runs.
