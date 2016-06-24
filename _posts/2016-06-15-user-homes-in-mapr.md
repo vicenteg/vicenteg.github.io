@@ -11,7 +11,7 @@ MapR FS provides some very useful capabilities for data management and access co
 features can and should be applied to user home directories.
 
 A user in a MapR cluster has a lot of capability at their fingertips. They can create files,
-two styles of NoSQL tables, pub/sub messaging streams with many thousands of topics.
+two styles of NoSQL tables, and pub/sub messaging streams with many thousands of topics.
 They can also run MapReduce or Spark jobs, or run just about any program against the
 file system using the POSIX capability of the cluster. With all the stuff they can
 do, there's bound to be a lot of data getting stored, and it's a good idea to keep
@@ -25,7 +25,7 @@ If you want to follow along, all you need is a MapR cluster or [single-node
 sandbox](https://www.mapr.com/products/mapr-sandbox-hadoop) running MapR 5.1.0 or later.
 
 All of what I'll demonstrate here can be done on any [license level](https://www.mapr.com/products/mapr-distribution-editions) of MapR,
-from community edition to enterprise.
+from Community Edition to Enterprise.
 
 # What We'll Do
 
@@ -34,6 +34,8 @@ data management, and for user home directories, can do the following for you:
 
 * Restrict access through [Volume Access Control Expressions (ACEs)](http://maprdocs.mapr.com/51/#SecurityGuide/VolumeDataACE.html)
 * Control space usage through quotas
+* Data Protection through snapshots, for accidental deletion (Enterprise)
+* Remote mirroring (Enterprise)
 
 # Let's Do It
 
