@@ -2,6 +2,7 @@
 layout: post
 title:  "User On-Boarding Basics with MapR"
 date:   2016-06-15 19:56:22 -0500
+updated: 2016-07-08 09:47:30 -0500
 categories: maprfs
 ---
 
@@ -42,14 +43,6 @@ data management, and for user home directories, can do the following for you:
 Jumping right in, we'll run a few maprcli commands. I'll explain these in a minute.
 
 ```
-# The "type" argument 0 means "user"
-maprcli entity modify \
-  -name vince \
-  -type 0 \
-  -email vgonzalez@maprtech.com \
-  -quota 2T \
-  -advisoryquota 1T
-
 maprcli volume create \
   -path /user/vince \
   -name home.vince \
@@ -60,24 +53,34 @@ maprcli volume create \
   -writeAce u:vince
 
 hadoop fs -chown vince:vince /user/vince
+
+# The "type" argument 0 means "user"
+maprcli entity modify \
+  -name vince \
+  -type 0 \
+  -email vgonzalez@maprtech.com \
+  -quota 2T \
+  -advisoryquota 1T
 ```
 
 A few things happened here.
 
-First, we set a quota for the "accountable entity" named vince. The accountable entity
+Next I create a volume for user `vince`. The volume has a quota of 300MB, which means
+the volume will stop accepting writes once it has 300MB of data. This is a _hard_ quota.
+
+The volume also has an advisory quota of 200MB.
+
+Then we set the owner of the volume's root to the user for whom we created the volume.
+
+Last, we set a quota for the "accountable entity" named vince. The accountable entity
 quota gives us a way to constrain the space used by a user across volumes, and
 also a way to account for the number of volumes and the total space consumed
-across them.
+across them. The accountable entity can only be modified after a volume is created.
 
 Consider a scenario in which a user has multiple volumes, such as a basic home
 directory and a workspace for an application the he's developing. The accountable
 entity gives the cluster admins a convenient way to sum up all the usage of the
 volumes provisioned to that entity.
-
-Next I create a volume for user `vince`. The volume has a quota of 300MB, which means
-the volume will stop accepting writes once it has 300MB of data. This is a _hard_ quota.
-
-The volume also has an advisory quota of 200MB. More about quotas in a bit.
 
 By convention, we mount the volume at the path `/user/<username>` and name it
 `home.<username>`. This makes it easy to filter when dealing with large number of
