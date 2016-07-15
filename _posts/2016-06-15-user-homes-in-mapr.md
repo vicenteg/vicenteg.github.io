@@ -5,7 +5,6 @@ date:   2016-06-15 19:56:22 -0500
 updated: 2016-07-08 09:47:30 -0500
 categories: maprfs
 ---
-_updated {{page.updated}}_
 
 # User On-Boarding Basics with MapR
 
