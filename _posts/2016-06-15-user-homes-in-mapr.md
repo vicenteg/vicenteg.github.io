@@ -6,8 +6,6 @@ updated: 2016-07-08 09:47:30 -0500
 categories: maprfs
 ---
 
-# User On-Boarding Basics with MapR
-
 MapR FS provides some very useful capabilities for data management and access control. These
 features can and should be applied to user home directories.
 
