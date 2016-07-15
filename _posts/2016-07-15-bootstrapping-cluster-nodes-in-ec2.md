@@ -7,8 +7,8 @@ categories: mapr,amazon,ec2,cloud,ansible
 
 There's a bunch of ways to spin up MapR in AWS. Primarily, I use ansible to do it.
 Why spin up instances and install them myself? Mainly it's because I'm not always
- using AWS, and I need a repeatable way to install clusters under any circumstance,
- whether on-prem or cloud.
+using AWS, and I need a repeatable way to install clusters under any circumstance,
+whether on-prem or cloud.
 
 The lowest common demoninator in this case is to think of this as getting handed
 a bunch of machines, and installing MapR on them. Originally I built ansible
@@ -208,5 +208,3 @@ jq '.stats[].failures' < ansible-mapr_preinstall_result.json
 ```
 
 You should see a bunch of zeros - one for each host in the inventory.
-
-# Finding the failures in the JSON output
