@@ -1,7 +1,7 @@
 ---
 layout: "post"
 title:  "Bootstrapping MapR Cluster Nodes in EC2"
-date:   2016-07-15 15:33:33 -0500
+date:   2016-07-15 09:33:33 -0500
 categories: "mapr,amazon,ec2,cloud,ansible"
 ---
 
