@@ -7,9 +7,9 @@
 
 # Site settings
 title: vicenteg
-email: vgonzalez@mapr.com
+email: vince@vincegonzalez.dev
 description: > # this means to ignore newlines until "baseurl:"
-  What I'm working on.
+  Things I decided to write about.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://vicenteg.github.io" # the base hostname & protocol for your site
 twitter_username: ecnivny
